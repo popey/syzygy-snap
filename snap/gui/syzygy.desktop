@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=System Syzygy
+Exec=syzygy
+Icon=${SNAP}/meta/gui/syzygy.png
+Categories=Games

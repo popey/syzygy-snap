@@ -1,0 +1,46 @@
+name: syzygy
+version: git
+summary: System Syzygy - A narrative meta-puzzle game
+base: core18
+description: |
+  System Syzygy is a puzzle game, in the style of Cliff Johnson's 
+  The Fool's Errand and 3 in Three, and of Andrew Plotkin's System's 
+  Twilight..
+
+grade: stable
+confinement: strict
+
+parts:
+  syzygy:
+    plugin: rust
+    #rust-channel: nightly
+    override-pull: |
+      snapcraftctl pull
+      mkdir $SNAPCRAFT_PART_INSTALL/data
+      cp -a data/fonts data/sprites data/backgrounds $SNAPCRAFT_PART_INSTALL/data
+      sed -i 's|usr/lib/syzygy|/snap/syzygy/current|' src/gui/loader/path_linux.c
+    source: https://github.com/mdsteele/syzygy.git
+    override-build: |
+      snapcraftctl build
+      cp -a target/release/syzygy $SNAPCRAFT_PART_INSTALL/bin
+    build-packages:
+      - libsdl2-dev
+    stage-packages:
+      - libglu1-mesa
+      - libsdl2-2.0-0
+      - libpulse0
+
+apps:
+  syzygy:
+    environment:
+      LD_LIBRARY_PATH: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio"
+      SYZYGY_DATA_DIR: "$SNAP/data"
+      HOME: "$SNAP_USER_DATA"
+      XDG_CACHE_HOME: "$SNAP_USER_DATA/.cache" # https://www.mesa3d.org/envvars.html
+      #MESA_GLSL_CACHE_DIR: "$SNAP_USER_DATA/"
+    command: syzygy
+    plugs:
+      - x11
+      - pulseaudio
+      - opengl
+      - screen-inhibit-control
