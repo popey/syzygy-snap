@@ -1,5 +1,5 @@
 name: syzygy
-version: git
+adopt-info: syzygy
 summary: System Syzygy - A narrative meta-puzzle game
 base: core18
 description: |
@@ -13,16 +13,16 @@ confinement: strict
 parts:
   syzygy:
     plugin: rust
-    #rust-channel: nightly
     override-pull: |
       snapcraftctl pull
-      mkdir $SNAPCRAFT_PART_INSTALL/data
-      cp -a data/fonts data/sprites data/backgrounds $SNAPCRAFT_PART_INSTALL/data
       sed -i 's|usr/lib/syzygy|/snap/syzygy/current|' src/gui/loader/path_linux.c
     source: https://github.com/mdsteele/syzygy.git
     override-build: |
       snapcraftctl build
+      mkdir $SNAPCRAFT_PART_INSTALL/data
+      cp -a data/fonts data/sprites data/backgrounds $SNAPCRAFT_PART_INSTALL/data
       cp -a target/release/syzygy $SNAPCRAFT_PART_INSTALL/bin
+      snapcraftctl set-version $(git -C ../src describe --tags  | sed 's/v//')
     build-packages:
       - libsdl2-dev
     stage-packages:
@@ -33,11 +33,16 @@ parts:
 apps:
   syzygy:
     environment:
+      SHELL: bash
+      LC_ALL: C.UTF-8
+      SNAPCRAFT_ARCH_TRIPLET: ${SNAPCRAFT_ARCH_TRIPLET}
+      __EGL_VENDOR_LIBRARY_DIRS: $SNAP/etc/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d
+      LIBGL_DRIVERS_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
+      LIBVA_DRIVERS_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/dri
       LD_LIBRARY_PATH: "$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio"
       SYZYGY_DATA_DIR: "$SNAP/data"
       HOME: "$SNAP_USER_DATA"
-      XDG_CACHE_HOME: "$SNAP_USER_DATA/.cache" # https://www.mesa3d.org/envvars.html
-      #MESA_GLSL_CACHE_DIR: "$SNAP_USER_DATA/"
+      XDG_CACHE_HOME: "$SNAP_USER_DATA/.cache" 
     command: syzygy
     plugs:
       - x11
